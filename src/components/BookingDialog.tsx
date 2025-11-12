@@ -22,12 +22,22 @@ import { bookingFormSchema } from "@/schema/bookingFormSchema";
 import { BookingConfirmation } from "./BookingConfirmation";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Booking } from "@/types";
+import { useCenter } from "@/contexts/CenterContext";
+import { Loader2 } from "lucide-react";
 
 export function BookingDialog() {
+  const { center } = useCenter();
   const [openDialog, setOpenDialog] = useState(false);
-  const [bookings, setBookings] = useLocalStorage<Booking[]>("bookings", []);
+  const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [bookings, setBookings] = useLocalStorage<Booking[]>(
+    `bookings-${center}`,
+    []
+  );
 
-  const { handleSubmit, control, reset } = useForm<z.infer<typeof bookingFormSchema>>({
+  const { handleSubmit, control, reset } = useForm<
+    z.infer<typeof bookingFormSchema>
+  >({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
       name: "",
@@ -38,7 +48,9 @@ export function BookingDialog() {
     mode: "onTouched",
   });
 
-  function onSubmit(data: z.infer<typeof bookingFormSchema>) {
+  async function onSubmit(data: z.infer<typeof bookingFormSchema>) {
+    setLoading(true);
+
     const newBooking = {
       // eslint-disable-next-line react-hooks/purity
       id: Date.now().toString(),
@@ -46,11 +58,18 @@ export function BookingDialog() {
       createdAt: new Date().toISOString(),
     };
 
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+
     setBookings((prev: Booking[]) => [...prev, newBooking]);
 
     toast.success("Booking confirmed!", {
       description: (
-        <BookingConfirmation date={data.date} email={data.email} name={data.name} time={data.time}  />
+        <BookingConfirmation
+          date={data.date}
+          email={data.email}
+          name={data.name}
+          time={data.time}
+        />
       ),
       classNames: {
         content: "flex flex-col gap-1",
@@ -62,12 +81,15 @@ export function BookingDialog() {
 
     setOpenDialog(false);
     reset();
+    setLoading(false);
   }
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="mt-4 w-full rounded place-self-end-safe">Book</Button>
+        <Button className="mt-4 w-full rounded place-self-end-safe">
+          Book
+        </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[425px] bg-background">
@@ -182,7 +204,13 @@ export function BookingDialog() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
 
-            <Button type="submit">Save changes</Button>
+            <Button type="submit">
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-white" />
+              ) : (
+                "Save changes"
+              )}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

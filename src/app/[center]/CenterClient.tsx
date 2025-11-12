@@ -7,6 +7,7 @@ import { ServiceCard } from "@/components/ServiceCard";
 import { notFound } from "next/navigation";
 import { CenterSkeleton } from "@/components/CenterSkeleton";
 import { LastBookingBanner } from "@/components/LastBookingBanner";
+import { Footer } from "@/components/Footer";
 
 export function CenterClient({ center }: { center: string }) {
   const { data: centerData, isLoading, isError } = useCenterData(center);
@@ -15,9 +16,6 @@ export function CenterClient({ center }: { center: string }) {
 
   if (isLoading)
     return (
-      // <div className="flex flex-col items-center justify-center h-screen gap-4">
-      //   <p className="text-gray-500">Loading center...</p>
-      // </div>
       <CenterSkeleton />
     );
 
@@ -41,9 +39,11 @@ export function CenterClient({ center }: { center: string }) {
         </div>
       </div>
 
-      <div className="mt-8 mx-auto">
+      <div className="mt-6 mx-auto">
         <LastBookingBanner center={center} />
       </div>
+
+      <Footer />
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { CenterProvider } from "@/contexts/CenterContext";
 import { CenterClient } from "./CenterClient";
 
 type CenterProps = {
@@ -9,7 +10,9 @@ export default async function CenterPage({ params }: { params: CenterProps }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-background p-8">
-      <CenterClient center={center} />
+      <CenterProvider center={center}>
+        <CenterClient center={center} />
+      </CenterProvider>
     </div>
   );
 }
