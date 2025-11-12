@@ -8,8 +8,10 @@ import { notFound } from "next/navigation";
 import { CenterSkeleton } from "@/components/CenterSkeleton";
 import { LastBookingBanner } from "@/components/LastBookingBanner";
 import { Footer } from "@/components/Footer";
+import { useCenter } from "@/contexts/CenterContext";
 
-export function CenterClient({ center }: { center: string }) {
+export function CenterClient() {
+  const { center } = useCenter();
   const { data: centerData, isLoading, isError } = useCenterData(center);
 
   if (isError) return notFound();
