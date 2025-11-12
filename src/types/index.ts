@@ -13,3 +13,12 @@ export type CenterData = {
   services: Service[];
   description: string;
 };
+
+export type Booking = {
+  id: string;
+  name: string;
+  email: string;
+  date: Date;
+  time: string;
+  createdAt: string;
+};

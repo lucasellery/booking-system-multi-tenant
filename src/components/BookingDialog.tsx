@@ -1,6 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
+import z from "zod/v3";
 import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,65 +17,57 @@ import { CardContent } from "./ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
-
-const formSchema = z.object({
-  name: z
-    .string()
-    .min(5, "Bug title must be at least 5 characters.")
-    .max(32, "Bug title must be at most 32 characters."),
-  email: z
-    .string()
-    .email("Please enter a valid email.")
-    .min(5, "Email must be at least 5 characters.")
-    .max(100, "Email must be at most 100 characters."),
-  date: z.date(),
-  time: z.string(),
-});
+import { useState } from "react";
+import { bookingFormSchema } from "@/schema/bookingFormSchema";
+import { BookingConfirmation } from "./BookingConfirmation";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { Booking } from "@/types";
 
 export function BookingDialog() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const [openDialog, setOpenDialog] = useState(false);
+  const [bookings, setBookings] = useLocalStorage<Booking[]>("bookings", []);
+
+  const { handleSubmit, control, reset } = useForm<z.infer<typeof bookingFormSchema>>({
+    resolver: zodResolver(bookingFormSchema),
     defaultValues: {
       name: "",
       email: "",
       date: new Date(),
-      time: "10:30",
+      time: "00:00",
     },
     mode: "onTouched",
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  function onSubmit(data: z.infer<typeof bookingFormSchema>) {
+    const newBooking = {
+      // eslint-disable-next-line react-hooks/purity
+      id: Date.now().toString(),
+      ...data,
+      createdAt: new Date().toISOString(),
+    };
+
+    setBookings((prev: Booking[]) => [...prev, newBooking]);
+
     toast.success("Booking confirmed!", {
       description: (
-        <div className="mt-2 text-sm leading-relaxed">
-          <p className="font-medium text-foreground">
-            Thank you, <span className="font-semibold">{data.name}</span>!
-          </p>
-          <p>
-            Your booking has been scheduled for{" "}
-            <span className="font-semibold">
-              {data.date.toLocaleDateString()} at {data.time}
-            </span>
-            .
-          </p>
-          <p className="text-muted-foreground mt-1">
-            A confirmation will be send to{" "}
-            <span className="font-medium">{data.email}</span>.
-          </p>
-        </div>
+        <BookingConfirmation date={data.date} email={data.email} name={data.name} time={data.time}  />
       ),
-      position: "bottom-right",
       classNames: {
         content: "flex flex-col gap-1",
       },
+      position: "top-right",
+      closeButton: true,
       duration: 5000,
     });
+
+    setOpenDialog(false);
+    reset();
   }
 
   return (
-    <Dialog>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="mt-4 w-full rounded">Book</Button>
+        <Button className="mt-4 w-full rounded place-self-end-safe">Book</Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[425px] bg-background">
@@ -86,12 +78,12 @@ export function BookingDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <form id="book-service-form" onSubmit={form.handleSubmit(onSubmit)}>
+        <form id="book-service-form" onSubmit={handleSubmit(onSubmit)}>
           <CardContent>
             <FieldGroup>
               <Controller
                 name="name"
-                control={form.control}
+                control={control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="form-book-name">Your name</FieldLabel>
@@ -111,7 +103,7 @@ export function BookingDialog() {
 
               <Controller
                 name="email"
-                control={form.control}
+                control={control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="form-book-email">
@@ -134,7 +126,7 @@ export function BookingDialog() {
 
               <Controller
                 name="date"
-                control={form.control}
+                control={control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="form-book-date">Date</FieldLabel>
@@ -162,7 +154,7 @@ export function BookingDialog() {
 
               <Controller
                 name="time"
-                control={form.control}
+                control={control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="form-book-time">Time</FieldLabel>
