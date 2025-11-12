@@ -13,18 +13,12 @@ export function CenterClient({ center }: { center: string }) {
   const { data: centerData, isLoading, isError } = useCenterData(center);
 
   if (isError) return notFound();
-
-  if (isLoading)
-    return (
-      <CenterSkeleton />
-    );
-
-  if (isError || !centerData) return notFound();
+  if (isLoading) return <CenterSkeleton />;
+  if (!centerData) return notFound();
 
   return (
     <>
       <Header centerData={centerData} />
-
       <HeroSection centerData={centerData} />
 
       <div className="md:px-12 mt-12 md:mt-24 space-y-10 flex flex-col items-center">
